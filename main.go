@@ -10,8 +10,6 @@ import (
 
 	definition "github.com/peac36/microservice-definition"
 	"google.golang.org/grpc"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -31,24 +29,13 @@ func Boot() {
 	var address string = os.Getenv("GRPC_PROTOCOL")
 
 	fmt.Printf("Connect to Database\n")
-	connection := bootDatabase(dbUsername, dbPassword, dbAddress, dbPort, dbName)
+	connection := persist.BootDatabase(dbUsername, dbPassword, dbAddress, dbPort, dbName)
 
 	fmt.Printf("Run Migrations \n")
 	connection.AutoMigrate(&persist.Post{})
 
 	service := Service{repo: &persist.Repository{Connection: connection}}
 	bootService(service, network, address)
-}
-
-func bootDatabase(username string, password string, address string, port string, databaseName string) *gorm.DB {
-	dsnTemplate := "%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local"
-	dsn := fmt.Sprintf(dsnTemplate, username, password, address, port, databaseName)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Can not connect to database %s \n", err)
-	}
-
-	return db
 }
 
 func bootService(service Service, network string, address string) {
