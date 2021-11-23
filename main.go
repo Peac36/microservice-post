@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"post/persist"
 
 	definition "github.com/peac36/microservice-definition"
 	"google.golang.org/grpc"
@@ -25,16 +24,16 @@ func Boot() {
 	var dbPort string = os.Getenv("DB_PORT")
 	var dbName string = os.Getenv("DB_NAME")
 
-	var network string = os.Getenv("GRPC_PROTOCOL")
-	var address string = os.Getenv("GRPC_PROTOCOL")
+	var network string = os.Getenv("GRPC_NETWORK")
+	var address string = os.Getenv("GRPC_ADDRESS")
 
 	fmt.Printf("Connect to Database\n")
-	connection := persist.BootDatabase(dbUsername, dbPassword, dbAddress, dbPort, dbName)
+	connection := BootDatabase(dbUsername, dbPassword, dbAddress, dbPort, dbName)
 
 	fmt.Printf("Run Migrations \n")
-	connection.AutoMigrate(&persist.Post{})
+	connection.AutoMigrate(&Post{})
 
-	service := Service{repo: &persist.Repository{Connection: connection}}
+	service := Service{repo: &Repository{Connection: connection}}
 	bootService(service, network, address)
 }
 
@@ -51,7 +50,7 @@ func bootService(service Service, network string, address string) {
 }
 
 type Service struct {
-	repo persist.RepositoryInterface
+	repo RepositoryInterface
 	*definition.UnimplementedPostServiceServer
 }
 
